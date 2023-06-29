@@ -116,7 +116,8 @@ def get_software_updates():
             (Product.update != '*') &
             (Product.update != '-'))
         # Check if the update field is not empty, "*" or "-", also other values may be used
-        # to indicate that the product is not updated -> EDA needed
+        # to indicate that the product is not updated ->
+        # TODO: EDA needed
         .group_by(Product.product, Product.vendor)
         .limit(100)
         .all()

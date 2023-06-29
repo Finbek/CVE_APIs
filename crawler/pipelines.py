@@ -63,7 +63,6 @@ class SQLitePipeline:
                 update=el['update'],
                 edition=el['edition'],
                 language=el['language'],
-                # Use affected_versions_number.id instead of affected_versions_number
                 affected_versions_number_id=affected_versions_number.id
             )
             self.session.add(product)
