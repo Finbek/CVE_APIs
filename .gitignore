@@ -24,15 +24,13 @@ instance/
 
 # IDE and Editor Files
 .idea/
-.vscode/
+
 
 # Logs and Output Files
 logs/
 output/
 
-# Dependency Management
-pip-lock.txt
-requirements.txt
+
 
 # Environment Variables
 .env
