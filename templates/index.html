@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Vulnerability Query</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+
+            h1 {
+                text-align: center;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            label {
+                margin-top: 10px;
+            }
+
+            input[type="text"],
+            input[type="date"],
+            select {
+                padding: 5px;
+                width: 100%;
+                margin-top: 5px;
+            }
+
+            button[type="submit"] {
+                padding: 10px 20px;
+                background-color: #337ab7;
+                color: #fff;
+                border: none;
+                margin-top: 10px;
+                cursor: pointer;
+            }
+
+            button[type="submit"]:hover {
+                background-color: #23527c;
+            }
+            #resultsSection {
+            margin-top: 20px;
+            }
+
+            #resultsSection table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            #resultsSection th, #resultsSection td {
+                padding: 10px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Vulnerability Query</h1>
+
+        <form  id="vulnerabilityForm">
+            <label for="product">Product:</label>
+            <input type="text" id="product" name="product" required>
+
+            <label for="from_date">From Date:</label>
+            <input type="date" id="from_date" name="from_date" >
+
+            <label for="to_date">To Date:</label>
+            <input type="date" id="to_date" name="to_date" >
+
+            <label for="sort_by">Sort By:</label>
+            <select id="sort_by" name="sort_by">
+                <option value="cvss">CVSS</option>
+                <option value="date">Date</option>
+            </select>
+            <select id="sort_order" name="sort_order">
+                <option value="asc">ascending</option>
+                <option value="desc">descending</option>
+            </select>
+
+            <button type="submit">Search</button>
+        </form>
+
+        <section id="resultsSection">
+            <h2>Results:</h2>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Vendor</th>
+                        <th>Versions</th>
+                        <th>Vulnerability Types</th>
+                        <th>CVSS Score</th>
+                        <th>Last Update Date</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                </tbody>
+            </table>
+        </section>
+        <script>
+            function populateResultsTable(data, sortBy, sortOrder) {
+                const resultsTableBody = document.getElementById('resultsTableBody');
+                if (sortBy === 'date') {
+                    data.sort((a, b) => {
+                        const dateA = new Date(a.date);
+                        const dateB = new Date(b.date);
+                        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+                    });
+                } else if (sortBy === 'cvss') {
+                    data.sort((a, b) => {
+                        return sortOrder === 'asc' ? a.cvss_score - b.cvss_score : b.cvss_score - a.cvss_score;
+                    });
+                }
+                resultsTableBody.innerHTML = '';
+                data.forEach((item) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.product}</td>
+                        <td>${item.vendor}</td>
+                        <td>${item.versions.join(', ')}</td>
+                        <td>${item.vulnerability_types}</td>
+                        <td>${item.cvss_score}</td>
+                        <td>${item.date}</td>
+                    `;
+                    resultsTableBody.appendChild(row);
+                });
+            }
+            const form = document.getElementById('vulnerabilityForm');
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const product = form.elements.product.value;
+                const apiUrl = `${window.location.origin}/api/critical_vulnerabilities?product=${product}`;
+
+                const fromDate = form.elements.from_date.value;
+                if (fromDate!==""){
+                    apiUrl+=`&from=${fromDate}`
+                }
+                const toDate = form.elements.to_date.value;
+                if (toDate!==""){
+                    apiUrl+=`&to=${toDate}`
+                }
+                const sortBy = form.elements.sort_by.value;
+                const sortOrder = form.elements.sort_order.value;
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        populateResultsTable(data, sortBy, sortOrder);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            });
+        </script>
+    </body>
+</html>
