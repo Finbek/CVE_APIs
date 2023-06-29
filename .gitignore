@@ -14,7 +14,7 @@ env/
 
 # Scrapy
 .scrapy/
-.crawls/
+crawls/
 
 # Flask
 instance/

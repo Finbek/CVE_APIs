@@ -1,9 +1,12 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from models import Product, Vulnerability, AffectedVersionsNumber
 import os
 import sys
+
+# fmt: off
 sys.path.append(os.path.abspath(".."))
+from models import Product, Vulnerability, AffectedVersionsNumber
+# fmt: on
 
 
 class SQLitePipeline:
