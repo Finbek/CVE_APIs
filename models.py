@@ -11,7 +11,8 @@ class Product(Base):
     update = db.Column(db.String(50), nullable=False)
     edition = db.Column(db.String(50), nullable=False)
     language = db.Column(db.String(50), nullable=False)
-    affected_versions_number_id = db.Column(db.Integer, db.ForeignKey('affected_versions_number.id'), nullable=False)
+    affected_versions_number_id = db.Column(db.Integer, db.ForeignKey(
+        'affected_versions_number.id'), nullable=False)
 
     def __repr__(self):
         return f"<Product(id={self.id}, product_type='{self.product_type}', vendor='{self.vendor}', " \
@@ -32,7 +33,8 @@ class Vulnerability(Base):
     vulnerability_types = db.Column(db.String(255))
     publish_date = db.Column(db.Date, nullable=False)
     last_update_date = db.Column(db.Date, nullable=False)
-    affected_versions = db.relationship('AffectedVersionsNumber', backref='vulnerability')
+    affected_versions = db.relationship(
+        'AffectedVersionsNumber', backref='vulnerability')
 
     def __repr__(self):
         return f"<Vulnerability(id={self.id}, cvss_score={self.cvss_score}, " \
@@ -46,7 +48,8 @@ class Vulnerability(Base):
 class AffectedVersionsNumber(Base):
     __tablename__ = 'affected_versions_number'
     id = db.Column(db.Integer, primary_key=True)
-    vulnerability_id = db.Column(db.Integer, db.ForeignKey('vulnerabilities.id'), nullable=False)
+    vulnerability_id = db.Column(db.Integer, db.ForeignKey(
+        'vulnerabilities.id'), nullable=False)
     affected_version_number = db.Column(db.String(50), nullable=False)
     products = db.relationship('Product', backref='affected_versions_number')
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify,request
+from flask import Blueprint, jsonify, request
 from sqlalchemy import desc, func
 from models import Product, Vulnerability, AffectedVersionsNumber
 from database import db
@@ -6,7 +6,6 @@ from datetime import datetime
 
 
 bp = Blueprint('api', __name__, url_prefix='/api')
-
 
 
 @bp.route('/critical_vulnerabilities', methods=['GET'])
@@ -19,8 +18,8 @@ def get_critical_vulnerabilities():
     cvss_min = request.args.get('cvss_min', default=0.0, type=float)
     cvss_max = request.args.get('cvss_max', default=10.0, type=float)
 
-    product = request.args.get('product', default=None, type = str)
-    vendor = request.args.get('vendor', default=None, type = str)
+    product = request.args.get('product', default=None, type=str)
+    vendor = request.args.get('vendor', default=None, type=str)
 
     from_date_str = request.args.get('from')
     to_date_str = request.args.get('to')
@@ -34,7 +33,6 @@ def get_critical_vulnerabilities():
         to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
     else:
         to_date = datetime.max
-
 
     query = (
         db.session.query(
@@ -59,7 +57,8 @@ def get_critical_vulnerabilities():
     if vendor:
         query = query.filter(Product.vendor == vendor)
 
-    results = query.group_by(Product.product, Product.vendor, Vulnerability.vulnerability_types, Vulnerability.cvss_score).limit(100).all()
+    results = query.group_by(Product.product, Product.vendor,
+                             Vulnerability.vulnerability_types, Vulnerability.cvss_score).limit(100).all()
     formatted_results = [
         {
             'product': product,
@@ -73,13 +72,14 @@ def get_critical_vulnerabilities():
     ]
     return jsonify(formatted_results)
 
+
 @bp.route('/software_updates', methods=['GET'])
 def get_software_updates():
     # Retrieve software with critical vulnerabilities that require an update.
     # The time range is defined using query parameters 'from' and 'to', for example: /software_updates?from=2023-01-01&to=2023-06-30
     # The cvss range is defined using query parameters 'cvss_min' and 'cvss_max', for example: /software_updates?cvss_min=1.0&cvss_max=7.0
     # It's hard to define what software we should return. I decided to check
-    #if the updates were provided to the product after the bug was discovered.
+    # if the updates were provided to the product after the bug was discovered.
 
     cvss_min = request.args.get('cvss_min', default=0.0, type=float)
     cvss_max = request.args.get('cvss_max', default=10.0, type=float)
@@ -116,7 +116,7 @@ def get_software_updates():
             (Product.update != '*') &
             (Product.update != '-'))
         # Check if the update field is not empty, "*" or "-", also other values may be used
-        #to indicate that the product is not updated -> EDA needed
+        # to indicate that the product is not updated -> EDA needed
         .group_by(Product.product, Product.vendor)
         .limit(100)
         .all()
@@ -133,6 +133,7 @@ def get_software_updates():
         for product, vendor, versions, updates, date in results
     ]
     return jsonify(formatted_results)
+
 
 @bp.route('/bug_count_by_type', methods=['GET'])
 def get_bug_count_by_type():
@@ -163,7 +164,7 @@ def get_bug_count_by_type():
         )
         .filter(Vulnerability.cvss_score >= cvss_min)
         .filter(Vulnerability.cvss_score <= cvss_max)
-        .filter(Vulnerability.vulnerability_types!="")
+        .filter(Vulnerability.vulnerability_types != "")
         .filter(Vulnerability.last_update_date >= from_date, Vulnerability.last_update_date <= to_date)
         .group_by(Vulnerability.vulnerability_types)
         .order_by(desc('bug_count'))
@@ -179,6 +180,7 @@ def get_bug_count_by_type():
     ]
 
     return jsonify(bug_count_by_type)
+
 
 @bp.route('/recent_vulnerable_codes', methods=['GET'])
 def get_recent_vulnerable_codes():
@@ -226,9 +228,10 @@ def get_recent_vulnerable_codes():
             "type": type,
             'vulnerability_count': vulnerability_count
         }
-        for product, vendor,type, vulnerability_count in results
+        for product, vendor, type, vulnerability_count in results
     ]
     return jsonify(formatted_results)
+
 
 @bp.route('/products_with_critical_vulnerabilities', methods=['GET'])
 def get_products_with_critical_vulnerabilities():
@@ -302,10 +305,10 @@ def get_vulnerability_severity_statistics():
         .filter(Vulnerability.publish_date <= to_date)
         .filter(
             (Vulnerability.availability_impact != "") &
-            (Vulnerability.availability_impact != "???")&
-            (Vulnerability.integrity_impact != "")&
-            (Vulnerability.integrity_impact != "???")&
-            (Vulnerability.confidentiality_impact != "")&
+            (Vulnerability.availability_impact != "???") &
+            (Vulnerability.integrity_impact != "") &
+            (Vulnerability.integrity_impact != "???") &
+            (Vulnerability.confidentiality_impact != "") &
             (Vulnerability.confidentiality_impact != "???")
         )
         .group_by(
@@ -331,11 +334,10 @@ def get_vulnerability_severity_statistics():
 
 @bp.route('/top_vendors_most_vulnerabilities', methods=['GET'])
 def get_top_vendors_most_vulnerabilities():
-    #This API retrieves a list of vendors that produce the most buggy
+    # This API retrieves a list of vendors that produce the most buggy
     # software based on the number of vulnerabilities associated with their products
     # The time range is defined using query parameters 'from' and 'to', for example: /top_vendors_most_vulnerabilities?from=2023-01-01&to=2023-06-30
     # The cvss range is defined using query parameters 'cvss_min' and 'cvss_max', for example: /top_vendors_most_vulnerabilities?cvss_min=1.0&cvss_max=7.0
-
 
     cvss_min = request.args.get('cvss_min', default=0.0, type=float)
     cvss_max = request.args.get('cvss_max', default=10.0, type=float)

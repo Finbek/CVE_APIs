@@ -6,14 +6,14 @@ from cve_spider import Spider
 
 
 class TestCVESpider(unittest.TestCase):
-  def setUp(self):
-    self.spider = Spider()
-    self.crawler = get_crawler(self.spider.__class__)
+    def setUp(self):
+        self.spider = Spider()
+        self.crawler = get_crawler(self.spider.__class__)
 
-  def test_parse_page(self):
-    response = HtmlResponse(
-        url='https://www.cvedetails.com/vulnerability-list/year-2022/vulnerabilities.html',
-        body='''
+    def test_parse_page(self):
+        response = HtmlResponse(
+            url='https://www.cvedetails.com/vulnerability-list/year-2022/vulnerabilities.html',
+            body='''
         <html>
             <body>
                 <div id="searchresults">
@@ -31,18 +31,19 @@ class TestCVESpider(unittest.TestCase):
             </body>
         </html>
         ''',
-        encoding='utf-8'
-    )
-    results = list(self.spider.parse_page(response))
+            encoding='utf-8'
+        )
+        results = list(self.spider.parse_page(response))
 
-    self.assertEqual(len(results), 2)
-    self.assertEqual(results[0].url, 'https://www.cvedetails.com/vulnerability-details/cve-2022-1234/')
-    self.assertEqual(results[1].url, 'https://www.cvedetails.com/vulnerability-details/cve-2022-5678/')
+        self.assertEqual(len(results), 2)
+        self.assertEqual(
+            results[0].url, 'https://www.cvedetails.com/vulnerability-details/cve-2022-1234/')
+        self.assertEqual(
+            results[1].url, 'https://www.cvedetails.com/vulnerability-details/cve-2022-5678/')
 
-
-  def test_cve_parse(self):
-    response = HtmlResponse(url='https://www.cvedetails.com/vulnerability-details/cve-2022-1234/',
-                            body =  '''
+    def test_cve_parse(self):
+        response = HtmlResponse(url='https://www.cvedetails.com/vulnerability-details/cve-2022-1234/',
+                                body='''
         <table id="cvssscorestable" class="details">
             <tbody>
                 <tr>
@@ -89,21 +90,21 @@ class TestCVESpider(unittest.TestCase):
             </tbody>
         </table>
         ''',
-        encoding='utf-8')
-    results = list(self.spider.cve_parse(response))
+                                encoding='utf-8')
+        results = list(self.spider.cve_parse(response))
 
-    self.assertEqual(len(results), 1)
-    self.assertEqual(results[0]['cvss_score'], '8.5')
-    self.assertEqual(results[0]['confidentiality_impact'], 'Complete')
-    self.assertEqual(results[0]['integrity_impact'], 'Complete')
-    self.assertEqual(results[0]['availability_impact'], 'Complete')
-    self.assertEqual(results[0]['access_complexity'], 'Medium')
-    self.assertEqual(results[0]['authentication'], '')
-    self.assertEqual(results[0]['gained_access'], 'None')
-    self.assertEqual(results[0]['vulnerability_types'], '')
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['cvss_score'], '8.5')
+        self.assertEqual(results[0]['confidentiality_impact'], 'Complete')
+        self.assertEqual(results[0]['integrity_impact'], 'Complete')
+        self.assertEqual(results[0]['availability_impact'], 'Complete')
+        self.assertEqual(results[0]['access_complexity'], 'Medium')
+        self.assertEqual(results[0]['authentication'], '')
+        self.assertEqual(results[0]['gained_access'], 'None')
+        self.assertEqual(results[0]['vulnerability_types'], '')
 
-  def test_extract_affected_versions(self):
-    selector = Selector(text='''
+    def test_extract_affected_versions(self):
+        selector = Selector(text='''
         <table class="listtable" id="vulnversconuttable">
 					<tbody><tr>
 						<th>
@@ -133,18 +134,18 @@ class TestCVESpider(unittest.TestCase):
 
 										</tbody></table>
     ''')
-    results = self.spider.extract_affected_versions(selector)
+        results = self.spider.extract_affected_versions(selector)
 
-    self.assertEqual(len(results), 2)
-    self.assertEqual(results[0]['vendor'], 'Drachtio')
-    self.assertEqual(results[0]['product'], 'Drachtio-server')
-    self.assertEqual(results[0]['num_versions'], '1')
-    self.assertEqual(results[1]['vendor'], 'Drachtio2')
-    self.assertEqual(results[1]['product'], 'Drachtio-server')
-    self.assertEqual(results[1]['num_versions'], '1')
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0]['vendor'], 'Drachtio')
+        self.assertEqual(results[0]['product'], 'Drachtio-server')
+        self.assertEqual(results[0]['num_versions'], '1')
+        self.assertEqual(results[1]['vendor'], 'Drachtio2')
+        self.assertEqual(results[1]['product'], 'Drachtio-server')
+        self.assertEqual(results[1]['num_versions'], '1')
 
-  def test_extract_vulnerable_products(self):
-    selector = Selector(text='''
+    def test_extract_vulnerable_products(self):
+        selector = Selector(text='''
         <table class="listtable" id="vulnprodstable">
 			<tbody><tr>
 				<th class="num">#</th>
@@ -184,31 +185,31 @@ class TestCVESpider(unittest.TestCase):
 					</script>
 						</tbody></table>
     ''')
-    results = self.spider.extract_vulnerable_products(selector)
+        results = self.spider.extract_vulnerable_products(selector)
 
-    self.assertEqual(len(results), 1)
-    self.assertEqual(results[0]['product_type'], 'Application')
-    self.assertEqual(results[0]['vendor'], 'Vicidial')
-    self.assertEqual(results[0]['product'], 'Vicidial')
-    self.assertEqual(results[0]['version'], '2.14b0.5')
-    self.assertEqual(results[0]['update'], '3555')
-    self.assertEqual(results[0]['edition'], '*')
-    self.assertEqual(results[0]['language'], '')
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['product_type'], 'Application')
+        self.assertEqual(results[0]['vendor'], 'Vicidial')
+        self.assertEqual(results[0]['product'], 'Vicidial')
+        self.assertEqual(results[0]['version'], '2.14b0.5')
+        self.assertEqual(results[0]['update'], '3555')
+        self.assertEqual(results[0]['edition'], '*')
+        self.assertEqual(results[0]['language'], '')
 
+    def test_parse_date(self):
+        publish_date, last_update_date = self.spider.parse_date(
+            'Publish Date : 2022-01-01 Last Update Date : 2022-01-02')
+        self.assertEqual(publish_date.strftime('%Y-%m-%d'), '2022-01-01')
+        self.assertEqual(last_update_date.strftime('%Y-%m-%d'), '2022-01-02')
 
-  def test_parse_date(self):
-    publish_date, last_update_date = self.spider.parse_date('Publish Date : 2022-01-01 Last Update Date : 2022-01-02')
-    self.assertEqual(publish_date.strftime('%Y-%m-%d'), '2022-01-01')
-    self.assertEqual(last_update_date.strftime('%Y-%m-%d'), '2022-01-02')
+    def test_clean_string(self):
+        cleaned_string = self.spider.clean_string('\n   Example String   \n')
+        self.assertEqual(cleaned_string, 'Example String')
 
-  def test_clean_string(self):
-    cleaned_string = self.spider.clean_string('\n   Example String   \n')
-    self.assertEqual(cleaned_string, 'Example String')
-
-  def test_write_db(self):
-    result = self.spider.write_db(None)
-    self.assertIsNone(result)
+    def test_write_db(self):
+        result = self.spider.write_db(None)
+        self.assertIsNone(result)
 
 
 if __name__ == '__main__':
-  unittest.main()
+    unittest.main()
